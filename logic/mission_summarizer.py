@@ -7,13 +7,17 @@ Maintains MISSION_STATE.md as a living document that tracks:
 - Development log
 - Technical debt and lessons learned
 - Next action items
+
+Enhanced with Git-aware summary generation that analyzes code changes
+and extracts logical intent rather than just listing changed lines.
 """
 
 from pathlib import Path
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 from pydantic import BaseModel, Field
 from datetime import datetime
 import re
+import subprocess
 
 
 class ArchitectureComponent(BaseModel):
@@ -38,6 +42,22 @@ class DevelopmentLogEntry(BaseModel):
     description: str
     timestamp: str
     vibe_check_passed: bool = False
+
+
+class GitChangeAnalysis(BaseModel):
+    """Represents analyzed git changes with semantic meaning"""
+    file_path: str
+    change_type: str  # "added", "modified", "deleted", "renamed"
+    intent: str  # Human-readable description of what changed and why
+    added_lines: int = 0
+    removed_lines: int = 0
+
+
+class GitDiffSummary(BaseModel):
+    """Summary of git diff analysis"""
+    commit_hash: Optional[str] = None
+    changes: List[GitChangeAnalysis] = Field(default_factory=list)
+    summary: str  # Overall summary of the changeset
 
 
 class MissionState(BaseModel):
@@ -112,6 +132,294 @@ def update_mission_log(
     # Write updated content
     with open(mission_state_path, 'w', encoding='utf-8') as f:
         f.write(content)
+
+
+def analyze_git_diff(workspace_root: Path, commit_range: str = "HEAD") -> GitDiffSummary:
+    """
+    Analyze git diff and extract semantic meaning of changes.
+    
+    Args:
+        workspace_root: Root directory of the git repository
+        commit_range: Git commit range (e.g., "HEAD", "HEAD~1..HEAD", "main..feature")
+    
+    Returns:
+        GitDiffSummary with analyzed changes and their intent
+    
+    Example:
+        >>> summary = analyze_git_diff(Path("."), "HEAD~1..HEAD")
+        >>> print(summary.summary)
+        >>> for change in summary.changes:
+        ...     print(f"  {change.file_path}: {change.intent}")
+    """
+    try:
+        # Get commit hash if analyzing HEAD
+        commit_hash = None
+        if commit_range == "HEAD":
+            result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=workspace_root,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                commit_hash = result.stdout.strip()[:7]  # Short hash
+        
+        # Get diff stats
+        result = subprocess.run(
+            ["git", "diff", "--numstat", commit_range],
+            cwd=workspace_root,
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode != 0:
+            return GitDiffSummary(
+                summary="No git repository found or no changes detected"
+            )
+        
+        changes = _parse_git_diff_output(result.stdout, workspace_root, commit_range)
+        
+        # Generate overall summary
+        if not changes:
+            overall_summary = "No changes detected"
+        else:
+            file_count = len(changes)
+            added_total = sum(c.added_lines for c in changes)
+            removed_total = sum(c.removed_lines for c in changes)
+            
+            change_types = {}
+            for change in changes:
+                change_types[change.change_type] = change_types.get(change.change_type, 0) + 1
+            
+            type_desc = ", ".join([f"{count} {type}" for type, count in change_types.items()])
+            overall_summary = f"Modified {file_count} files ({type_desc}): +{added_total} -{removed_total} lines"
+        
+        return GitDiffSummary(
+            commit_hash=commit_hash,
+            changes=changes,
+            summary=overall_summary
+        )
+    
+    except subprocess.TimeoutExpired:
+        return GitDiffSummary(summary="Git diff analysis timed out")
+    except Exception as e:
+        return GitDiffSummary(summary=f"Error analyzing git diff: {str(e)}")
+
+
+def _parse_git_diff_output(diff_output: str, workspace_root: Path, commit_range: str) -> List[GitChangeAnalysis]:
+    """Parse git diff --numstat output and infer intent for each file."""
+    changes = []
+    
+    for line in diff_output.strip().split('\n'):
+        if not line:
+            continue
+        
+        parts = line.split('\t')
+        if len(parts) != 3:
+            continue
+        
+        added, removed, filepath = parts
+        
+        # Handle binary files
+        if added == '-' or removed == '-':
+            added_count = 0
+            removed_count = 0
+            change_type = "modified"
+        else:
+            added_count = int(added)
+            removed_count = int(removed)
+            
+            # Infer change type
+            if added_count > 0 and removed_count == 0:
+                change_type = "added"
+            elif added_count == 0 and removed_count > 0:
+                change_type = "deleted"
+            else:
+                change_type = "modified"
+        
+        # Infer intent from file path and change pattern
+        intent = _infer_change_intent(
+            filepath,
+            added_count,
+            removed_count,
+            change_type,
+            workspace_root,
+            commit_range
+        )
+        
+        changes.append(GitChangeAnalysis(
+            file_path=filepath,
+            change_type=change_type,
+            intent=intent,
+            added_lines=added_count,
+            removed_lines=removed_count
+        ))
+    
+    return changes
+
+
+def _infer_change_intent(
+    filepath: str,
+    added: int,
+    removed: int,
+    change_type: str,
+    workspace_root: Path,
+    commit_range: str
+) -> str:
+    """
+    Infer the logical intent of a file change using heuristics.
+    
+    This is a simplified heuristic approach. For production use, consider:
+    - Analyzing actual diff content (not just stats)
+    - Using AST parsing for code files
+    - ML-based commit message generation
+    """
+    filename = Path(filepath).name
+    extension = Path(filepath).suffix
+    
+    # File type specific heuristics
+    if extension in ['.md', '.txt', '.rst']:
+        if change_type == "added":
+            return f"Added documentation: {filename}"
+        elif change_type == "deleted":
+            return f"Removed documentation: {filename}"
+        else:
+            ratio = added / (removed + 1)  # Avoid division by zero
+            if ratio > 2:
+                return f"Expanded documentation in {filename}"
+            elif ratio < 0.5:
+                return f"Simplified documentation in {filename}"
+            else:
+                return f"Updated documentation in {filename}"
+    
+    elif extension in ['.py', '.js', '.ts', '.java', '.go', '.rs']:
+        if change_type == "added":
+            if 'test' in filepath.lower():
+                return f"Added test file: {filename}"
+            else:
+                return f"Implemented new module: {filename}"
+        elif change_type == "deleted":
+            return f"Removed obsolete code: {filename}"
+        else:
+            # Try to get actual diff content for better analysis
+            try:
+                result = subprocess.run(
+                    ["git", "diff", commit_range, "--", filepath],
+                    cwd=workspace_root,
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                
+                if result.returncode == 0:
+                    diff_content = result.stdout.lower()
+                    
+                    # Heuristic analysis of diff content
+                    if 'def ' in diff_content or 'function ' in diff_content or 'class ' in diff_content:
+                        if added > removed * 1.5:
+                            return f"Added new functionality to {filename}"
+                        elif removed > added * 1.5:
+                            return f"Refactored and simplified {filename}"
+                        else:
+                            return f"Modified logic in {filename}"
+                    
+                    if 'import ' in diff_content or 'from ' in diff_content:
+                        return f"Updated dependencies in {filename}"
+                    
+                    if 'fix' in diff_content or 'bug' in diff_content:
+                        return f"Fixed bug in {filename}"
+            except:
+                pass
+            
+            return f"Modified {filename}"
+    
+    elif extension in ['.json', '.yaml', '.yml', '.toml', '.ini']:
+        if change_type == "added":
+            return f"Added configuration file: {filename}"
+        else:
+            return f"Updated configuration in {filename}"
+    
+    elif extension in ['.html', '.css', '.scss']:
+        if change_type == "added":
+            return f"Created new UI component: {filename}"
+        else:
+            return f"Updated UI styling in {filename}"
+    
+    elif filename in ['requirements.txt', 'package.json', 'Cargo.toml', 'go.mod']:
+        return f"Updated project dependencies"
+    
+    elif filename in ['README.md', 'CHANGELOG.md', 'LICENSE']:
+        return f"Updated project {filename}"
+    
+    else:
+        # Generic fallback
+        if change_type == "added":
+            return f"Added {filename}"
+        elif change_type == "deleted":
+            return f"Removed {filename}"
+        else:
+            return f"Modified {filename}"
+
+
+def update_mission_log_with_git(
+    mission_state_path: Path,
+    task_summary: str,
+    workspace_root: Optional[Path] = None,
+    commit_range: str = "HEAD",
+    vibe_check_passed: bool = False
+) -> None:
+    """
+    Update MISSION_STATE.md with git-aware change analysis.
+    
+    This function automatically analyzes git diff and extracts the logical
+    intent of code changes, creating a more meaningful development log entry.
+    
+    Args:
+        mission_state_path: Path to MISSION_STATE.md file
+        task_summary: Human-readable summary of what was accomplished
+        workspace_root: Root of git repository (defaults to mission_state parent)
+        commit_range: Git commit range to analyze (default: "HEAD")
+        vibe_check_passed: Whether vibe check validation passed
+    
+    Example:
+        >>> update_mission_log_with_git(
+        ...     Path(".agent/MISSION_STATE.md"),
+        ...     "Implemented user authentication",
+        ...     workspace_root=Path("."),
+        ...     commit_range="HEAD~1..HEAD"
+        ... )
+    """
+    if workspace_root is None:
+        workspace_root = mission_state_path.parent.parent
+    
+    # Analyze git changes
+    git_summary = analyze_git_diff(workspace_root, commit_range)
+    
+    # Build change list from git analysis
+    changes = []
+    if git_summary.changes:
+        changes.append(f"📊 {git_summary.summary}")
+        changes.append("")
+        
+        for change in git_summary.changes:
+            icon = {
+                "added": "➕",
+                "modified": "📝",
+                "deleted": "❌",
+                "renamed": "🔄"
+            }.get(change.change_type, "•")
+            
+            changes.append(f"{icon} {change.intent}")
+    
+    # Use standard update_mission_log with git-enriched changes
+    update_mission_log(
+        mission_state_path,
+        task_summary,
+        changes if changes else None,
+        vibe_check_passed
+    )
 
 
 def add_technical_debt(

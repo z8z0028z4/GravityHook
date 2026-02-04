@@ -56,39 +56,67 @@ print(print_context_summary(context))
 
 ---
 
-### 2. `sync_mission_state()`
+### 2. `sync_mission_state()` / `sync_mission_state_with_git()`
 **Module**: `logic.mission_summarizer`  
-**Function**: `update_mission_log(mission_state_path, task_summary, changes, vibe_check_passed)`
+**Functions**: 
+- `update_mission_log(mission_state_path, task_summary, changes, vibe_check_passed)`
+- `update_mission_log_with_git(mission_state_path, task_summary, workspace_root, commit_range, vibe_check_passed)` ⭐ **NEW**
 
 Updates `MISSION_STATE.md` with latest accomplishments and architectural changes.
+
+**Standard Mode** - Manual change listing:
+```python
+update_mission_log(
+    Path(".agent/MISSION_STATE.md"),
+    "Implemented user authentication",
+    ["Added JWT generation", "Created login endpoint"],
+    vibe_check_passed=True
+)
+```
+
+**Git-Aware Mode** ⭐ - Automatic change analysis from git diff:
+```python
+update_mission_log_with_git(
+    Path(".agent/MISSION_STATE.md"),
+    "Implemented user authentication",
+    workspace_root=Path("."),
+    commit_range="HEAD~1..HEAD",  # Analyze last commit
+    vibe_check_passed=True
+)
+```
+
+**Output Example**:
+```markdown
+### ✅ Implemented user authentication
+**Date**: 2026-02-05 02:00
+
+**Changes**:
+- 📊 Modified 5 files (3 modified, 2 added): +145 -12 lines
+- 
+- 📝 Added new functionality to auth.py
+- ➕ Implemented new module: jwt_handler.py
+- 📝 Modified logic in user_model.py
+- ➕ Added test file: test_auth.py
+- 📝 Updated configuration in config.yaml
+```
+
+**When to use Git-Aware Mode**:
+- When changes are already committed to git
+- To create a "development documentary" style log
+- To automatically extract logical intent from code changes
+- For human engineers to quickly understand what changed and why
 
 **Parameters**:
 - `mission_state_path`: Path to MISSION_STATE.md (usually `.agent/MISSION_STATE.md`)
 - `task_summary`: Human-readable summary of what was accomplished
-- `changes`: List of specific changes made
+- `workspace_root`: Root of git repository (defaults to mission_state parent)
+- `commit_range`: Git commit range (e.g., "HEAD", "HEAD~1..HEAD", "main..feature")
 - `vibe_check_passed`: Boolean indicating if verification passed
 
 **When to use**:
 - After completing any significant task
 - After passing vibe_check verification
 - When switching between major development phases
-
-**Example**:
-```python
-from logic.mission_summarizer import update_mission_log
-from pathlib import Path
-
-update_mission_log(
-    Path(".agent/MISSION_STATE.md"),
-    "Implemented user authentication system",
-    [
-        "Added JWT token generation with 1-hour expiration",
-        "Created /auth/login and /auth/refresh endpoints",
-        "Implemented role-based access control middleware"
-    ],
-    vibe_check_passed=True
-)
-```
 
 **Additional Functions**:
 - `add_technical_debt(path, issue, context, severity)` - Record lessons learned

@@ -8,14 +8,25 @@ Provides context management, mission summarization, and verification tools.
 __version__ = "0.1.0"
 
 from .context_manager import initialize_workspace, WorkspaceContext
-from .mission_summarizer import update_mission_log, MissionState
+from .mission_summarizer import (
+    update_mission_log,
+    update_mission_log_with_git,
+    analyze_git_diff,
+    MissionState,
+    GitDiffSummary,
+    GitChangeAnalysis
+)
 from .vibe_checker import perform_vibe_check, CheckResult
 
 __all__ = [
     "initialize_workspace",
     "WorkspaceContext",
     "update_mission_log",
+    "update_mission_log_with_git",
+    "analyze_git_diff",
     "MissionState",
+    "GitDiffSummary",
+    "GitChangeAnalysis",
     "perform_vibe_check",
     "CheckResult",
 ]

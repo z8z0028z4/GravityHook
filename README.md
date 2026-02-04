@@ -66,17 +66,26 @@ Follow the [SKILL_MANIFEST.md](SKILL_MANIFEST.md) for detailed instructions. Qui
 
 ```python
 from logic.context_manager import initialize_workspace
-from logic.mission_summarizer import update_mission_log
+from logic.mission_summarizer import update_mission_log, update_mission_log_with_git
 from logic.vibe_checker import perform_vibe_check
 
 # Load repository context
 context = initialize_workspace()
 
-# After completing work
+# After completing work (manual mode)
 update_mission_log(
     context.mission_state_path,
     "Implemented feature X",
     ["Added Y", "Fixed Z"],
+    vibe_check_passed=True
+)
+
+# After completing work (git-aware mode) ⭐ NEW
+update_mission_log_with_git(
+    context.mission_state_path,
+    "Implemented feature X",
+    workspace_root=Path("."),
+    commit_range="HEAD~1..HEAD",  # Analyzes git diff automatically
     vibe_check_passed=True
 )
 ```
@@ -149,13 +158,22 @@ Maintains a living document of:
 - **Technical Debt**: Lessons learned and pending optimizations
 - **Next Actions**: Suggested next steps
 
+**⭐ Git-Aware Summary** (NEW):
 ```python
-update_mission_log(
+update_mission_log_with_git(
     Path(".agent/MISSION_STATE.md"),
     "Refactored authentication",
-    ["Switched to JWT", "Added refresh tokens"]
+    workspace_root=Path("."),
+    commit_range="HEAD~1..HEAD"
 )
 ```
+
+Automatically analyzes `git diff` and extracts **semantic intent** of changes:
+- "Added new functionality to auth.py" (not just "+50 lines")
+- "Refactored and simplified user_model.py"
+- "Updated project dependencies"
+
+**Result**: Reading MISSION_STATE.md feels like watching a **development documentary** 🎬
 
 ### 3. Vibe Checker (`vibe_checker.py`)
 
