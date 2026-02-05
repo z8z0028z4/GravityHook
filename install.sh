@@ -77,6 +77,17 @@ else
     echo -e "${YELLOW}⚠${NC} claw_rules.md already exists, skipping"
 fi
 
+if [ ! -f "$AGENT_DIR/skills/SKILL_INDEX.md" ]; then
+    cp "$SCRIPT_DIR/templates/SKILL_INDEX.md" "$AGENT_DIR/skills/"
+    echo -e "${GREEN}✓${NC} Copied SKILL_INDEX.md to .agent/skills/"
+else
+    echo -e "${YELLOW}⚠${NC} SKILL_INDEX.md already exists, skipping"
+fi
+
+echo ""
+echo -e "${BLUE}ℹ${NC} SYSTEM_PROMPT.md is available in GravityHook/templates/"
+echo -e "${BLUE}ℹ${NC} Copy its content to your OpenClaw Project's Custom Instructions"
+
 # Copy Python logic modules (optional)
 echo ""
 read -p "Copy Python logic modules to project? (y/n): " COPY_LOGIC

@@ -1,19 +1,19 @@
 # gravityhook: Lead Engineer Skill Pack
 
 **Version**: 0.1.0  
-**Description**: Equips OpenClaw with repository awareness and long-term memory framework, enabling seamless collaboration with Antigravity.
+**Description**: Equips OpenClaw with repository awareness and a long-term development log, optimized for co-working with Agent IDEs like Antigravity.
 
 ---
 
 ## 🎯 Purpose
 
 GravityHook provides OpenClaw with:
-1. **Context Awareness**: Automatically scan and load `.agent/` configuration
-2. **Persistent Memory**: Maintain MISSION_STATE.md across sessions
-3. **Automated Verification**: Execute vibe_check.md validation flows
-4. **Structural Analysis**: Detect Pydantic model changes and predict impact
+1. **Rule Awareness**: Distinguishes between universal **Global Rules** and repository **Local Rules**.
+2. **Development Memory**: Automatically maintains `MISSION_STATE.md` across sessions.
+3. **Automated Verification**: Executes `vibe_check.md` validation flows.
+4. **Impact Awareness**: Basic structural analysis for Python/Pydantic models.
 
-This skill pack creates a **compatibility layer** between Antigravity and OpenClaw, allowing both AI systems to understand and contribute to the same repository state.
+This skill pack creates a **collaboration bridge** between OpenClaw and specialized Agent IDEs (like Antigravity), ensuring consistent coding standards and persistent project knowledge.
 
 ---
 

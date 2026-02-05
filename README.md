@@ -1,23 +1,24 @@
 # GravityHook 🪝
 
-**A compatibility layer between Antigravity and OpenClaw AI systems**
+**An OpenClaw skill for seamless collaboration with Agent IDEs (optimized for Antigravity)**
 
-GravityHook enables seamless collaboration between different AI coding assistants by providing:
-- 📋 **Persistent Context Management**: Automatically scan and load project rules
-- 🧠 **Long-Term Memory**: Maintain mission state across sessions
-- ✅ **Automated Verification**: Execute validation checklists
-- 🔍 **Structural Impact Analysis**: Predict effects of code changes
+This OpenClaw skill is primarily designed to guide OpenClaw's coding behavior, enabling seamless collaboration with Agent IDEs (like Antigravity). With this skill package, OpenClaw gains a comprehensive understanding of your global coding standards, project-specific rules, skills, workflows, and templates. 
+
+A key feature is its ability to encourage structured development notes during your discussions. It tracks your goals, accomplishments, and attempts, summarizing them into valuable insights that you, the AI, or your Agent IDE can reference to quickly grasp the project's history, current state, and future direction.
+
+GravityHook 主要是開發作為 OpenClaw 與 Antigravity（或其他支援 Skills 的 IDE Agent）之間的溝通橋樑。它讓 OpenClaw 能夠理解並遵循專案的規範與工作流，同時充當「開發紀錄員」，確保技術決策與進度能被精確記錄並傳承給不同系統的人與 AI。
 
 ---
 
-## 🎯 Why GravityHook?
+## 🎯 Core Features
 
-When working with multiple AI systems (like Antigravity and OpenClaw), keeping them synchronized is challenging:
-- Context resets between sessions
-- Technical decisions get lost in conversation history
-- No shared understanding of project goals and architecture
+- 📋 **Rule-Based Guidance**: Distinguishes between **Global Rules** (universal) and **Local Rules** (project-specific).
+- 🧠 **Persistent Development Log**: Automatically maintains `MISSION_STATE.md` to bridge context between sessions.
+- ✅ **Sanity Verification**: Executes `vibe_check.md` to ensure code quality before finishing tasks.
+- 🔍 **Python Impact Analysis**: Predicts effects of changes to Pydantic models (specifically for Python projects).
 
-**GravityHook solves this** by creating a shared `.agent/` directory structure that both systems can read and update, ensuring continuous knowledge transfer.
+> [!IMPORTANT]
+> **Workspace Integrity**: GravityHook reads directly from the project's `.agent/` directory using the Current Working Directory (CWD). It **never copies or moves** project files into the skill source, ensuring total separation between different repositories.
 
 ---
 
@@ -45,8 +46,13 @@ cd GravityHook
 
 This will:
 - Create `.agent/` directory in your project
-- Copy templates (MISSION_STATE.md, vibe_check.md, claw_rules.md)
+- Copy templates (MISSION_STATE.md, vibe_check.md, claw_rules.md, SKILL_INDEX.md)
 - Set up directory structure
+
+3. **Configure OpenClaw** (Important!):
+   - Open `templates/SYSTEM_PROMPT.md`
+   - Copy its content into your OpenClaw Project's **Custom Instructions** or **System Prompt**
+   - This enables automatic rule loading without manual reminders
 
 ### For Existing Projects
 
