@@ -241,6 +241,9 @@ Automated verification checklist:
 3. OpenClaw starts new session, reads `MISSION_STATE.md`
 4. OpenClaw understands what was done and continues work
 
+ps: Feel free the communicate with your openclaw about how to start "reloading project memory".
+in my exmpale, I would say "load repo {myrepo}", and my openclaw bot already knows the signal, so it uses gravityhook to restore its memeory on that repo
+
 ### Scenario 2: OpenClaw Autonomous Operation
 
 1. OpenClaw runs `scan_repo_context()` on startup
