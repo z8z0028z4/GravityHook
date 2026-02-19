@@ -1,2 +1,9 @@
-pydantic>=2.0.0
-python-frontmatter>=1.0.0
+# GravityHook v2.0
+# Runtime dependencies
+# --------------------------------------------------
+# Current core scripts (including templates/agent/tools/repo_check.py)
+# use Python standard library only.
+#
+# Keep this file for future pinned deps and CI consistency.
+
+# (no external runtime dependencies)

@@ -1,0 +1,14 @@
+🔧 Initializing .agent/ from GravityHook template...
+✅ GravityHook initialized at /tmp/gravityhook-e2e/.agent/
+📝 Don't forget to customize MISSION_STATE.md and project_rules.md
+📋 Parsing /tmp/gravityhook-e2e/.agent/vibe_check.md...
+🤖 Running 2 automated checks...
+  ❌ No secrets committed to repository: fail
+  ❌ Docker image builds successfully: fail
+🧠 Identifying 7 items for agent review...
+📊 Report saved to /home/clawd/foundation/gravityhook-core/tests/artifacts/gravityhook_e2e_report.json
+📈 Summary: 0/2 automated checks passed
+🧠 7 items require agent review
+== E2E Summary ==
+{'total_items': 9, 'automated': 2, 'passed': 0, 'failed': 2, 'pending': 7}
+agent_review_needed: 7

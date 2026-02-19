@@ -4,24 +4,24 @@
 
 ## Code Quality
 
-- [ ] All unit tests pass (`pytest`)
-- [ ] Code coverage is at least 80% (`pytest --cov`)
-- [ ] No linting errors (`pylint` or `ruff check`)
-- [ ] Type checking passes (`mypy`)
+- [!] All unit tests pass (`pytest`) <!-- FAIL: pytest not installed -->
+- [!] Code coverage is at least 80% (`pytest --cov`) <!-- FAIL: pytest not installed -->
+- [!] No linting errors (`ruff check`) <!-- FAIL: ruff not installed -->
+- [!] Type checking passes (`mypy`) <!-- FAIL: mypy not installed -->
 
 ## Architecture Compliance
 
-- [ ] Code follows async-first principles (manual review)
-- [ ] Strong typing with Pydantic models where applicable
-- [ ] No hardcoded values or magic numbers
-- [ ] Proper error handling (no bare except clauses)
+- [!] Code follows async-first principles (manual review) <!-- FAIL: All engines/ use sync I/O -->
+- [~] Strong typing with Pydantic models where applicable <!-- WARNING: Uses dataclass, not Pydantic -->
+- [!] No hardcoded values or magic numbers <!-- FAIL: Magic numbers found (9999, 500, 100, etc.) -->
+- [!] Proper error handling (no bare except clauses) <!-- FAIL: file_mover.py:159 bare except -->
 
 ## Documentation
 
-- [ ] File exists: README.md
-- [ ] Public functions have docstrings
-- [ ] API changes documented in CHANGELOG.md (if applicable)
-- [ ] MISSION_STATE.md updated with latest changes
+- [x] File exists: README.md
+- [x] Public functions have docstrings <!-- PASS: 90.5% coverage -->
+- [~] API changes documented in CHANGELOG.md (if applicable) <!-- N/A: No CHANGELOG.md -->
+- [x] MISSION_STATE.md updated with latest changes <!-- PASS: Updated 2026-02-11 -->
 
 ## Security & Performance
 

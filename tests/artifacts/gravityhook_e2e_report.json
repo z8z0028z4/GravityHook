@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-02-18T08:39:39.700664+00:00",
+  "repo_path": "/tmp/gravityhook-e2e",
+  "vibe_check_path": "/tmp/gravityhook-e2e/.agent/vibe_check.md",
+  "automated": [
+    {
+      "item": "No secrets committed to repository",
+      "command": "git secrets --scan",
+      "status": "fail",
+      "output": "git: 'secrets' is not a git command. See 'git --help'.",
+      "return_code": 1
+    },
+    {
+      "item": "Docker image builds successfully",
+      "command": "docker build .",
+      "status": "fail",
+      "output": "/bin/sh: 1: docker: not found",
+      "return_code": 127
+    }
+  ],
+  "agent_review_needed": [
+    {
+      "item": "Environment variables used for configuration",
+      "instruction": "Manual review required (no automated check available)"
+    },
+    {
+      "item": "User inputs are sanitized",
+      "files_to_check": [
+        "ui/*.py",
+        "engines/*.py"
+      ],
+      "rule_reference": ".agent/rules/project_rules.md#security-requirements"
+    },
+    {
+      "item": "Database queries use proper indexes (manual review)",
+      "instruction": "Manually review database schema and query patterns"
+    },
+    {
+      "item": "API endpoints respond correctly (manual test or automated integration tests)",
+      "instruction": "Manual review required (no automated check available)"
+    },
+    {
+      "item": "Database migrations applied successfully (if applicable)",
+      "instruction": "Manual review required (no automated check available)"
+    },
+    {
+      "item": "requirements.txt or pyproject.toml updated",
+      "instruction": "Manual review required (no automated check available)"
+    },
+    {
+      "item": "CI/CD pipeline passes (GitHub Actions, etc.)",
+      "instruction": "Manual review required (no automated check available)"
+    }
+  ],
+  "summary": {
+    "total_items": 9,
+    "automated": 2,
+    "passed": 0,
+    "failed": 2,
+    "pending": 7
+  }
+}
