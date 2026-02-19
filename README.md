@@ -130,7 +130,7 @@ python3 templates/agent/tools/repo_check.py \
 
 Use `/tmp/vibe_report.json` as review evidence before closing task/PR.
 
-### 3) Cross-agent handoff (Cobalt ↔ Antigravity)
+### 3) Cross-agent handoff (Openclaw ↔ Antigravity)
 When one agent finishes implementation:
 - Update `.agent/MISSION_STATE.md` with summary + next actions
 - Keep `.agent/rules/` and `.agent/pipelines/` unchanged unless intentionally revised
