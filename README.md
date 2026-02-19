@@ -103,6 +103,46 @@ Then review generated `.agent/` files and adjust rules/checklist to project need
 
 ---
 
+## Quick daily usage examples
+
+### 1) New repo bootstrap (day 0)
+Use GravityHook to initialize a project with shared `.agent/` standards.
+
+```bash
+bash scripts/bootstrap_gravityhook.sh /path/to/target-repo
+```
+
+Then confirm these files exist in target repo:
+- `.agent/MISSION_STATE.md`
+- `.agent/vibe_check.md`
+- `.agent/rules/claw_rules.md`
+- `.agent/pipelines/quality_check.md`
+
+### 2) Before marking a task done (quality gate)
+Run the checklist tool against project `.agent/vibe_check.md`.
+
+```bash
+python3 templates/agent/tools/repo_check.py \
+  --vibe-check /path/to/repo/.agent/vibe_check.md \
+  --repo-path /path/to/repo \
+  --output /tmp/vibe_report.json
+```
+
+Use `/tmp/vibe_report.json` as review evidence before closing task/PR.
+
+### 3) Cross-agent handoff (Cobalt ↔ Antigravity)
+When one agent finishes implementation:
+- Update `.agent/MISSION_STATE.md` with summary + next actions
+- Keep `.agent/rules/` and `.agent/pipelines/` unchanged unless intentionally revised
+- Next agent starts by reading:
+  1. `.agent/MISSION_STATE.md`
+  2. `.agent/rules/claw_rules.md`
+  3. `.agent/pipelines/quality_check.md`
+
+This keeps context durable across sessions and tools.
+
+---
+
 ## Roadmap (next)
 
 - Stabilize bootstrap CLI options and non-interactive mode
